@@ -1,0 +1,44 @@
+---
+- name: Audit Etcd Node Configuration Files
+  block:
+    - name: Get Etcd Config File
+      ansible.builtin.command:
+        cmd: "{{ ps }} -fC etcd"
+      register: etcd_config_file
+      when:
+        - cli_check.results | selectattr('item', 'equalto', '/usr/bin/ps') |
+          map(attribute='stat') | flatten | map(attribute='exists') | first |
+          bool
+
+    - name: Audit Etcd Node Configuration
+      ansible.builtin.slurp:
+        src: "{{ etcd_config_file.stdout |
+                 regex_search('(?<=config-file=)[\\S]+')
+             }}"
+      register: etcd_config
+      when:
+        - etcd_config_file.stdout is defined
+        - etcd_config_file.stdout |
+            regex_search('(?<=config-file=)[\S]+') is not none
+
+    - name: Decode Kube API Encryption Providers
+      ansible.builtin.set_fact:
+        etcd_config_data: "{{ etcd_config.content | b64decode | from_yaml }}"
+      when:
+        - etcd_config.content is defined
+
+    - name: Generate ETCD Compliance Report
+      ansible.builtin.template:
+        src: etcd_security_audit.j2
+        dest: "{{ reports_dir }}/{{ group }}/{{ inventory_hostname }}-{{
+                  audit_timestamp
+              }}.md"
+      delegate_to: localhost
+      become: false
+  ignore_errors: true
+  when:
+    - etcd_node is true
+  tags:
+    - etcd_audit
+    - etcd_security_audit
+    - etcd_config_audit

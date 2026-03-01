@@ -1,0 +1,190 @@
+{%- extends "etcd_security_audit.j2" -%}
+{%- block cis_self_assessment111 -%}
+{{ super() }}
+{%- endblock -%}
+{%- block cp_config_audit -%}
+{%- if 'cp_audit' in ansible_run_tags or 'cp_config_audit' in ansible_run_tags or 'all' in ansible_run_tags -%}
+{%- raw %}
+# 3 Control Plane Configuration
+
+## 3.1 Authentication and Authorization
+
+### 3.1.1 Client certificate authentication should not be used for users (Manual)
+
+**Audit:**  
+
+**Remediation:** Alternative mechanisms provided by Kubernetes such as the use of OIDC should be implemented in place of client certificates.
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_config_data.users is defined -%}
+{%- set ns = namespace(counter=0) -%}
+{% for user in kube_config_data.users %}
+{%- if user.user is defined %}
+{%- if user.user|dict2items|selectattr('key', 'match', '^client-certificate')|list|length > 0 %}
+{%- set ns.counter = ns.counter + 1 %}
+{% endif %}
+{% endif %}
+{%- endfor %}
+{%- if ns.counter == 0 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**List of users using Client Certificate Authentication:**  
+{% endraw %}
+{% for user in kube_config_data.users %}
+{{ '- `' + user.name|string + '`\n' if user.user is defined and user.user|dict2items|selectattr('key', 'match', '^client-certificate')|list|length > 0 }}
+{%- endfor %}
+{% raw %}
+Desired Setting: **None**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 3.1.2 Service account token authentication should not be used for users (Manual)
+
+**Audit:**  
+
+**Remediation:** Alternative mechanisms provided by Kubernetes such as the use of OIDC should be implemented in place of service account tokens.
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_config_data.users is defined -%}
+{%- set ns = namespace(token_counter = 0) -%}
+{% for user in kube_config_data.users %}
+{%- if user.user is defined %}
+{%- if user.user|dict2items|selectattr('key', 'match', '^token')|list|length > 0 %}
+{%- set ns.token_counter = ns.token_counter + 1 -%}
+{% endif %}
+{% endif %}
+{%- endfor %}
+{%- if ns.token_counter == 0 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**List of users using Service Account Token Authentication:**
+{% endraw %}
+{% for user in kube_config_data.users %}
+{{ '- `' + user.name|string + '`\n' if user.user is defined and user.user|dict2items|selectattr('key', 'match', '^token')|list|length > 0 }}
+{%- endfor %}
+{% raw %}
+Desired Setting: **None**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 3.1.3 Bootstrap token authentication should not be used for users (Manual)
+
+**Audit:**  
+
+**Remediation:** Alternative mechanisms provided by Kubernetes such as the use of OIDC should be implemented in place of bootstrap tokens.
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=enable-bootstrap-token-auth=)[\S]+')|bool is false %}
+ PASS  
+{% else %}
+{%- if bootstrap_tokens.stdout_lines is defined %}
+{%- if bootstrap_tokens.stdout_lines|list|length > 1 %}
+ FAIL  
+{% else %}
+ PASS  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% endif %}
+{%- raw -%}
+**List of Bootstrap Token Authentication:**
+{% endraw %}
+{%- if bootstrap_tokens.stdout_lines is defined -%}
+{% for token in bootstrap_tokens.stdout_lines %}
+{{ '`' + token|string + '`\n' }}
+{%- endfor %}
+{%- endif %}
+{% raw %}
+Desired Setting: **None**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+## 3.2 Authentication and Authorization
+
+### 3.2.1 Ensure that a minimal audit policy is created (Automated)
+
+**Audit:**  
+`/bin/ps -ef | grep kube-apiserver | grep -v grep`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=audit-policy-file=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=audit-policy-file=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure desired Audit Policy File Path**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 3.2.2 Ensure that the audit policy covers key security concerns (Manual)
+
+**Audit:**  
+**Remediation:** Review the audit policy provided for the cluster and ensure that it covers at least the following areas,
+
+- Access to Secrets managed by the cluster. Care should be taken to only log Metadata for requests to Secrets, ConfigMaps, and TokenReviews, in order to avoid risk of logging sensitive data.
+- Modification of Pod and Deployment objects.
+- Use of pods/exec, pods/portforward, pods/proxy and services/proxy. For most requests, minimally logging at the Metadata level is recommended (the most basic level of logging).
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if ap_metadata_level is defined and ap_pods_deployments is defined and ap_pods_verbs is defined and ap_catch_all.level is defined and ap_catch_all['omitStages'] is defined -%}
+{%- if ap_metadata_level|length > 0 and ap_pods_deployments|length > 0 and ap_pods_verbs|length > 0 and ap_catch_all.level|string == 'Metadata' %}
+{%- set metadata_policy=['secrets', 'configmaps', 'tokenreviews', 'pods/exec', 'pods/portforward', 'pods/proxy', 'services/proxy'] %}
+{%- set pods_deploy =['pods', 'deployments'] %}
+{%- set pods_deploy_verbs =['update', 'patch', 'create', 'delete'] %}
+{%- if metadata_policy is subset(ap_metadata_level) and pods_deploy is subset(ap_pods_deployments) and pods_deploy_verbs is subset(ap_pods_verbs) and 'RequestReceived' in ap_catch_all['omitStages'] %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+{{ '\n```\n' + audit_policy_data|to_nice_yaml|string + '\n```\n' if audit_policy_data is defined }}
+{%- raw -%}
+Desired Setting: **See Section 3.2.2 Remediation Notes**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% endif %}
+{% endblock %}

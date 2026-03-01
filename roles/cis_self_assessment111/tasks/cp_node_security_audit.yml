@@ -1,0 +1,146 @@
+---
+- name: Audit Control Plane Node Configuration Files
+  block:
+    - name: Audit API Server Pod Specification File
+      ansible.builtin.stat:
+        path: /var/lib/rancher/rke2/agent/pod-manifests/kube-apiserver.yaml
+      register: apiserver_stat
+
+    - name: Create Reports Directory
+      ansible.builtin.file:
+        path: "{{ reports_dir }}"
+        state: directory
+      delegate_to: localhost
+      become: false
+
+    - name: Audit Controller Manager Pod Specification File
+      ansible.builtin.stat:
+        path: >
+          /var/lib/rancher/rke2/agent/pod-manifests/kube-controller-manager.yaml
+      register: ctrlmgr_stat
+
+    - name: Audit Scheduler Pod Specification File
+      ansible.builtin.stat:
+        path: /var/lib/rancher/rke2/agent/pod-manifests/kube-scheduler.yaml
+      register: schdlr_stat
+
+    - name: Audit Etcd Pod Specification File
+      ansible.builtin.stat:
+        path: /var/lib/rancher/rke2/agent/pod-manifests/etcd.yaml
+      register: etcd_stat
+
+    - name: Audit Container Network Interface Specification Directories
+      ansible.builtin.find:
+        paths:
+          - /var/lib/cni/networks
+          - /etc/cni/net.d
+        recurse: true
+        follow: true
+        hidden: true
+        file_type: file
+        patterns: "*"
+      register: cni_dir_files
+
+    - name: Audit Etcd Data Directory
+      ansible.builtin.stat:
+        path: /var/lib/rancher/rke2/server/db/etcd
+      register: etcd_data_dir
+
+    - name: Audit Admin Kube Config File
+      ansible.builtin.stat:
+        path: /var/lib/rancher/rke2/server/cred/admin.kubeconfig
+      register: admin_conf_file
+
+    - name: Audit Scheduler Kube Config File
+      ansible.builtin.stat:
+        path: /var/lib/rancher/rke2/server/cred/scheduler.kubeconfig
+      register: sched_conf_file
+
+    - name: Audit Controller Kube Config File
+      ansible.builtin.stat:
+        path: /var/lib/rancher/rke2/server/cred/scheduler.kubeconfig
+      register: ctrl_conf_file
+
+    - name: Audit PKI Directory
+      ansible.builtin.stat:
+        path: /var/lib/rancher/rke2/server/tls
+      register: pki_dir
+
+    - name: Audit PKI Cert Files
+      ansible.builtin.find:
+        paths:
+          - /var/lib/rancher/rke2/server/tls
+        recurse: true
+        file_type: file
+        patterns: "*.crt"
+      register: pki_cert_files
+
+    - name: Audit PKI Key Files
+      ansible.builtin.find:
+        paths:
+          - /var/lib/rancher/rke2/server/tls
+        recurse: true
+        file_type: file
+        patterns: "*.key"
+      register: pki_key_files
+
+    - name: Audit Kube API Server
+      ansible.builtin.command:
+        cmd: "{{ ps }} -fC kube-apiserver"
+      register: kube_api_server
+      when:
+        - cli_check.results | selectattr('item', 'equalto', '/usr/bin/ps') |
+          map(attribute='stat') | flatten | map(attribute='exists') | first |
+          bool
+
+    - name: Audit Kube API Encryption Providers
+      ansible.builtin.slurp:
+        src: "{{ kube_api_server.stdout |
+                 regex_search('(?<=encryption-provider-config=)[\\S]+')
+             }}"
+      register: kube_api_config
+      when:
+        - kube_api_server.stdout is defined
+        - kube_api_server.stdout |
+            regex_search('(?<=encryption-provider-config=)[\S]+') is not none
+
+    - name: Decode Kube API Encryption Providers
+      ansible.builtin.set_fact:
+        encryption_config_data: "{{ kube_api_config.content | b64decode |
+                                    from_json
+                                }}"
+      when:
+        - kube_api_config.content is defined
+
+    - name: Audit Kube Controller Manager
+      ansible.builtin.command:
+        cmd: "{{ ps }} -fC kube-controller-manager"
+      register: kube_ctrl_mgr
+      when:
+        - cli_check.results | selectattr('item', 'equalto', '/usr/bin/ps') |
+          map(attribute='stat') | flatten | map(attribute='exists') | first |
+          bool
+
+    - name: Audit Kube Scheduler
+      ansible.builtin.command:
+        cmd: "{{ ps }} -fC kube-scheduler"
+      register: kube_scheduler
+      when:
+        - cli_check.results | selectattr('item', 'equalto', '/usr/bin/ps') |
+          map(attribute='stat') | flatten | map(attribute='exists') | first |
+          bool
+
+    - name: Generate Control Plane Compliance Report
+      ansible.builtin.template:
+        src: cp_security_audit.j2
+        dest: "{{ reports_dir }}/{{ group }}/{{ inventory_hostname }}-{{
+                  audit_timestamp
+              }}.md"
+      delegate_to: localhost
+      become: false
+  ignore_errors: true
+  when:
+    - group == 'servers'
+  tags:
+    - cp_audit
+    - cp_security_audit

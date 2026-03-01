@@ -1,0 +1,107 @@
+---
+- name: Audit Control Plane Configuration
+  block:
+    - name: Check Kube Config Exists
+      ansible.builtin.stat:
+        path: "{{ KUBECONFIG }}"
+      register: kube_config_check
+
+    - name: Audit Kube Config
+      ansible.builtin.slurp:
+        src: "{{ KUBECONFIG }}"
+      register: kube_config
+      when:
+        - kube_config_check.stat.exists is defined
+        - kube_config_check.stat.exists|bool
+
+    - name: Decode Kube Config
+      ansible.builtin.set_fact:
+        kube_config_data: "{{ kube_config.content | b64decode| from_yaml }}"
+      when:
+        - kube_config.content is defined
+
+    - name: Audit Kube API Server
+      ansible.builtin.command:
+        cmd: "{{ ps }} -fC kube-apiserver"
+      register: kube_api_server
+      when:
+        - cli_check.results | selectattr('item', 'equalto', '/usr/bin/ps') |
+          map(attribute='stat') | flatten | map(attribute='exists') | first |
+          bool
+
+    - name: Audit Bootstrap Token Authentication
+      ansible.builtin.command:
+        cmd: "{{ rke2 }} token list"
+      register: bootstrap_tokens
+      when:
+        - kube_api_server.stdout is defined
+        - kube_api_server.stdout |
+            regex_search('(?<=enable-bootstrap-token-auth=)[\S]+') | bool
+        - cli_check.results | selectattr('item', 'equalto',
+                                         '/usr/local/bin/rke2'
+                                         ) | map(attribute='stat') | flatten |
+            map(attribute='exists') | first | bool
+
+    - name: Audit Kube API Policy File 
+      ansible.builtin.slurp:
+        src: "{{ kube_api_server.stdout |
+                 regex_search('(?<=audit-policy-file=)[\\S]+')
+             }}"
+      register: audit_policy_file
+      when:
+        - kube_api_server.stdout is defined
+        - kube_api_server.stdout |
+            regex_search('(?<=audit-policy-file=)[\S]+') is not none
+
+    - name: Decode Kube API Policy File 
+      ansible.builtin.set_fact:
+        audit_policy_data: "{{ audit_policy_file.content | b64decode |
+                               from_yaml
+                           }}"
+      when:
+        - audit_policy_file.content is defined
+
+    - name: Scan Policy for Required Coverage
+      ansible.builtin.set_fact:
+        ap_metadata_level: "{{ audit_policy_data.rules |
+                               selectattr('level', 'equalto', 'Metadata') |
+                               map(attribute='resources')| select('defined') |
+                               flatten | map(attribute='resources') | flatten |
+                               list
+                           }}"
+        ap_pods_deployments: "{{ audit_policy_data.rules |
+                                 selectattr('level', 'equalto',
+                                   'RequestResponse'
+                                 ) | map(attribute='resources') |
+                                 select('defined') | flatten |
+                                 map(attribute='resources') | flatten | list
+                             }}"
+        ap_pods_verbs: "{{ audit_policy_data.rules |
+                           selectattr('level', 'equalto', 'RequestResponse') |
+                                       map(attribute='verbs') |
+                                       select('defined') | flatten | list
+                       }}"
+        ap_catch_all: "{{ audit_policy_data.rules | selectattr('level',
+                                                      'equalto', 'Metadata'
+                                                    ) |
+                          rejectattr('resources', 'defined') | first
+                      }}"
+      when:
+        - audit_policy_data.rules is defined
+
+    - name: Generate Control Plane Compliance Report
+      ansible.builtin.template:
+        src: cp_config_audit.j2
+        dest: "{{ reports_dir }}/{{ group }}/{{ inventory_hostname }}-{{
+                  audit_timestamp
+              }}.md"
+      delegate_to: localhost
+      become: false
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ KUBECONFIG }}"
+  when:
+    - group == 'servers'
+  tags:
+    - cp_audit
+    - cp_config_audit

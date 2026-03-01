@@ -1,0 +1,47 @@
+---
+- name: Audit Control Plane Node Security Configuration
+  ansible.builtin.import_tasks:
+    file: cp_node_security_audit.yml
+  when:
+    - group == 'servers'
+  tags:
+    - cp_audit
+    - cp_security_audit
+
+- name: Audit ETCD Node Security Configuration
+  ansible.builtin.import_tasks:
+    file: etcd_node_config_audit.yml
+  when:
+    - etcd_node
+  tags:
+    - etcd_audit
+    - etcd_security_audit
+    - etcd_config_audit
+
+- name: Audit Control Plane Configuration
+  ansible.builtin.import_tasks:
+    file: cp_node_config_audit.yml
+  when:
+    - group == 'servers'
+  tags:
+    - cp_audit
+    - cp_config_audit
+
+- name: Audit Worker Node Security Configuration
+  ansible.builtin.import_tasks:
+    file: worker_node_security_audit.yml
+  when:
+    - group == 'agents'
+  tags:
+    - worker_audit
+    - worker_config_audit
+    - worker_security_audit
+
+- name: Audit Kubernetes Policies
+  ansible.builtin.import_tasks:
+    file: kube_policies_audit.yml
+  when:
+    - group == 'servers'
+  tags:
+    - cp_audit
+    - kube_policies_audit

@@ -1,0 +1,1746 @@
+{%- extends "cis_self_assessment111.j2" -%}
+{%- block cis_self_assessment111 -%}
+{{ super() }}
+{%- endblock -%}
+{% block cp_security_audit %}
+{%- if 'cp_audit' in ansible_run_tags or 'cp_security_audit' in ansible_run_tags or 'all' in ansible_run_tags -%}
+{%- raw %}
+# 1 Control Plane Security Configuration
+
+## 1.1 Control Plane Node Configuration Files
+
+### 1.1.1 Ensure that the API server pod specification file permissions are set to 600 or more restrictive (Automated)
+
+**Audit:**  
+`stat -c permissions=%a /var/lib/rancher/rke2/agent/pod-manifests/kube-apiserver.yaml`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if apiserver_stat.stat.mode is defined -%}
+{%- if apiserver_stat.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ apiserver_stat.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.2 Ensure that the API server pod specification file ownership is set to root:root (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/pod-manifests/kube-apiserver.yaml; then stat -c %U:%G /var/lib/rancher/rke2/agent/pod-manifests/kube-apiserver.yaml; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if apiserver_stat.stat.pw_name is defined -%}
+{%- if apiserver_stat.stat.gr_name is defined -%}
+{%- if apiserver_stat.stat.pw_name|e == 'root' -%}
+{%- if apiserver_stat.stat.gr_name|e == 'root' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ apiserver_stat.stat.pw_name }}:{{ apiserver_stat.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.3 Ensure that the controller manager pod specification file permissions are set to 600 or more restrictive (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/pod-manifests/kube-controller-manager.yaml; then stat -c permissions=%a /var/lib/rancher/rke2/agent/pod-manifests/kube-controller-manager.yaml; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if ctrlmgr_stat.stat.mode is defined -%}
+{%- if ctrlmgr_stat.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ ctrlmgr_stat.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.4 Ensure that the controller manager pod specification file ownership is set to root:root (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/pod-manifests/kube-controller-manager.yaml; then stat -c %U:%G /var/lib/rancher/rke2/agent/pod-manifests/kube-controller-manager.yaml; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if ctrlmgr_stat.stat.pw_name is defined -%}
+{%- if ctrlmgr_stat.stat.gr_name is defined -%}
+{%- if ctrlmgr_stat.stat.pw_name|e == 'root' -%}
+{%- if ctrlmgr_stat.stat.gr_name|e == 'root' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ ctrlmgr_stat.stat.pw_name }}:{{ ctrlmgr_stat.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.5 Ensure that the scheduler pod specification file permissions are set to 600 or more restrictive (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/pod-manifests/kube-scheduler.yaml; then stat -c permissions=%a /var/lib/rancher/rke2/agent/pod-manifests/kube-scheduler.yaml; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if schdlr_stat.stat.mode is defined -%}
+{%- if schdlr_stat.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ schdlr_stat.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.6 Ensure that the scheduler pod specification file ownership is set to root:root (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/pod-manifests/kube-scheduler.yaml; then stat -c %U:%G /var/lib/rancher/rke2/agent/pod-manifests/kube-scheduler.yaml; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if schdlr_stat.stat.pw_name is defined -%}
+{%- if schdlr_stat.stat.gr_name is defined -%}
+{%- if schdlr_stat.stat.pw_name|e == 'root' -%}
+{%- if schdlr_stat.stat.gr_name|e == 'root' %}
+ PASS  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ schdlr_stat.stat.pw_name }}:{{ schdlr_stat.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.7 Ensure that the etcd pod specification file permissions are set to 600 or more restrictive (Manual)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/pod-manifests/etcd.yaml; then stat -c permissions=%a /var/lib/rancher/rke2/agent/pod-manifests/etcd.yaml; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if etcd_stat.stat.mode is defined -%}
+{%- if etcd_stat.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ etcd_stat.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.8 Ensure that the etcd pod specification file ownership is set to root:root (Manual)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/pod-manifests/etcd.yaml; then stat -c %U:%G /var/lib/rancher/rke2/agent/pod-manifests/etcd.yaml; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if etcd_stat.stat.pw_name is defined -%}
+{%- if etcd_stat.stat.gr_name is defined -%}
+{%- if etcd_stat.stat.pw_name|e == 'root' -%}
+{%- if etcd_stat.stat.gr_name|e == 'root' %}
+ PASS  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ etcd_stat.stat.pw_name }}:{{ etcd_stat.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.9 Ensure that the Container Network Interface file permissions are set to 600 or more restrictive (Manual)
+
+**Audit:**  
+
+**Remediation:** Note that for many CNIs, a lock file is created with permissions 750. This is expected and can be ignored. Run the below command (based on the file location on your system) on the control plane node. For example, `chmod 600 /var/lib/cni/networks/<filename> and chmod 600 /etc/cni/net.d/<filename>`
+
+**Result:**  
+
+
+{%- endraw -%}
+
+{%- if cni_dir_files.files is defined -%}
+{% for item in cni_dir_files.files %}
+
+{{ item.path }}
+
+{%- if item.mode is defined -%}
+{%- if 'lock' in item.path %}
+{%- if item.mode|int <= 750 %}
+ PASS  
+{% else %}
+ FAIL  
+{%- endif -%}
+{%- else -%}
+{%- if item.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{%- endif -%}
+{%- endif -%}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ item.mode + '` ' }}
+{%- if 'lock' in item.path -%}
+Desired Setting: **0750**
+{% else %}
+Desired Setting: **0600**
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% endfor %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.10 Ensure that the Container Network Interface file ownership is set to root:root (Manual)
+
+**Audit:**  
+`ps -fC {kubeletbin:-kubelet} | grep -- --cni-conf-dir || echo "/etc/cni/net.d" | sed 's%.*cni-conf-dir[= ]\([^ ]*\).*%\1%' | xargs -I{} find {} -mindepth 1 | xargs --no-run-if-empty stat -c %U:%G
+find /var/lib/cni/networks -type f 2> /dev/null | xargs --no-run-if-empty stat -c %U:%G`
+
+**Result:**  
+
+{%- endraw -%}
+
+
+{%- if cni_dir_files.files is defined -%}
+{% for item in cni_dir_files.files %}
+
+{{ item.path }}
+
+{%- if item.pw_name is defined -%}
+{%- if item.gr_name is defined -%}
+{%- if item.pw_name|e == 'root' -%}
+{%- if item.gr_name|e == 'root' %}
+ PASS  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ item.pw_name }}:{{ item.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% endfor %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.11 Ensure that the etcd data directory permissions are set to 700 or more restrictive (Manual)
+
+**Audit:**  
+`stat -c permissions=%a /var/lib/rancher/rke2/server/db/etcd`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if etcd_data_dir.stat.mode is defined -%}
+{%- if etcd_data_dir.stat.mode|int <= 700 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ etcd_data_dir.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0700**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.12 Ensure that the etcd data directory ownership is set to etcd:etcd (Manual)
+
+**Audit:**  
+`stat -c %U:%G /var/lib/rancher/rke2/server/db/etcd`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if etcd_data_dir.stat.pw_name is defined -%}
+{%- if etcd_data_dir.stat.gr_name is defined -%}
+{%- if etcd_data_dir.stat.pw_name|e == 'etcd' -%}
+{%- if etcd_data_dir.stat.gr_name|e == 'etcd' %}
+ PASS  
+{% endif %}
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ etcd_data_dir.stat.pw_name }}:{{ etcd_data_dir.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **etcd:etcd**
+{%- endraw -%}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+
+{% raw %}
+### 1.1.13 Ensure that the admin.conf file permissions are set to 600 or more restrictive (Automated)
+
+**Audit:**  
+`stat -c permissions=%a /var/lib/rancher/rke2/server/cred/admin.kubeconfig`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if admin_conf_file.stat.mode is defined -%}
+{%- if admin_conf_file.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ admin_conf_file.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.14 Ensure that the admin.conf file ownership is set to root:root (Automated)
+
+**Audit:**  
+`stat -c %U:%G /var/lib/rancher/rke2/server/cred/admin.kubeconfig`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if admin_conf_file.stat.pw_name is defined -%}
+{%- if admin_conf_file.stat.gr_name is defined -%}
+{%- if admin_conf_file.stat.pw_name|e == 'root' -%}
+{%- if admin_conf_file.stat.gr_name|e == 'root' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ admin_conf_file.stat.pw_name }}:{{ admin_conf_file.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.15 Ensure that the scheduler.conf file permissions are set to 600 or more restrictive (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/server/cred/scheduler.kubeconfig; then stat -c permissions=%a /var/lib/rancher/rke2/server/cred/scheduler.kubeconfig; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if sched_conf_file.stat.mode is defined -%}
+{%- if sched_conf_file.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ sched_conf_file.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.16 Ensure that the scheduler.conf file ownership is set to root:root (Automated)
+
+**Audit:**  
+`stat -c %U:%G /var/lib/rancher/rke2/server/cred/scheduler.kubeconfig`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if sched_conf_file.stat.pw_name is defined -%}
+{%- if sched_conf_file.stat.gr_name is defined -%}
+{%- if sched_conf_file.stat.pw_name|e == 'root' -%}
+{%- if sched_conf_file.stat.gr_name|e == 'root' %}
+ PASS  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ sched_conf_file.stat.pw_name }}:{{ sched_conf_file.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.17 Ensure that the controller-manager.conf file permissions are set to 600 or more restrictive (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/server/cred/controller.kubeconfig; then stat -c permissions=%a /var/lib/rancher/rke2/server/cred/controller.kubeconfig; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if ctrl_conf_file.stat.mode is defined -%}
+{%- if ctrl_conf_file.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ ctrl_conf_file.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.18 Ensure that the controller-manager.conf file ownership is set to root:root (Automated)
+
+**Audit:**  
+`stat -c %U:%G /var/lib/rancher/rke2/server/cred/controller.kubeconfig`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if ctrl_conf_file.stat.pw_name is defined -%}
+{%- if ctrl_conf_file.stat.gr_name is defined -%}
+{%- if ctrl_conf_file.stat.pw_name|e == 'root' -%}
+{%- if ctrl_conf_file.stat.gr_name|e == 'root' %}
+ PASS  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ ctrl_conf_file.stat.pw_name }}:{{ ctrl_conf_file.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.19 Ensure that the Kubernetes PKI directory and file ownership is set to root:root (Automated)
+
+**Audit:**  
+`stat -c %U:%G /var/lib/rancher/rke2/server/tls`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if pki_dir.stat.pw_name is defined -%}
+{%- if pki_dir.stat.gr_name is defined -%}
+{%- if pki_dir.stat.pw_name|e == 'root' -%}
+{%- if pki_dir.stat.gr_name|e == 'root' %}
+ PASS  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ pki_dir.stat.pw_name }}:{{ pki_dir.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.20 Ensure that the Kubernetes PKI certificate file permissions are set to 644 or more restrictive (Automated)
+
+**Audit:**  
+`stat -c permissions=%a /var/lib/rancher/rke2/server/tls/*.crt`
+
+**Result:**  
+{%- endraw -%}
+
+{% if pki_cert_files.files is defined %}
+{% for item in pki_cert_files.files %}
+
+{{ item.path }}
+
+{%- if item.mode is defined -%}
+{%- if item.mode|int <= 644 %}
+ PASS  
+{% else %}
+ FAIL  
+{%- endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ item.mode + '` ' }}
+{%- raw -%}
+ Desired Setting: **0644**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% endfor %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.1.21 Ensure that the Kubernetes PKI key file permissions are set to 600 (Automated)
+
+**Audit:**  
+`stat -c permissions=%a /var/lib/rancher/rke2/server/tls/*.key`
+
+**Result:**
+{%- endraw -%}
+
+{% if pki_key_files.files is defined %}
+{% for item in pki_key_files.files %}
+
+{{ item.path }}
+
+{%- if item.mode is defined -%}
+{%- if item.mode|int <= 644 %}
+ PASS  
+{% else %}
+ FAIL  
+{%- endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ item.mode + '` ' }}
+{%- raw -%}
+ Desired Setting: **0644**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% endfor %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+## 1.2 API Server
+
+### 1.2.1 Ensure that the --anonymous-auth argument is set to false (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=anonymous-auth=)[\S]+')|bool is false %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=anonymous-auth=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **false**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.2 Ensure that the --token-auth-file parameter is not set (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=token-auth-file=)[\S]+') is none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=token-auth-file=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **None**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.3 Ensure that the --DenyServiceExternalIPs is set (Manual)
+
+**Audit:**  
+
+**Remediation:** By default, RKE2 does not set DenyServiceExternalIPs. To enable this flag, edit the RKE2 config file /etc/rancher/rke2/config.yaml like below.
+
+```
+kube-apiserver-arg:
+- "enable-admission-plugins=DenyServiceExternalIPs"
+```
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if 'DenyServiceExternalIPs' in kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **...,DenyServiceExternalIPs,...**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.4 Ensure that the --kubelet-client-certificate and --kubelet-client-key arguments are set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=kublet-client-certificate=)[\S]+') is not none %}
+{%- if kube_api_server.stdout|regex_search('(?<=kublet-client-key=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `Cert: {{ kube_api_server.stdout|regex_search('(?<=kublet-client-certificate=)[\S]+')|string + '` ' }} `Key: {{ kube_api_server.stdout|regex_search('(?<=kublet-client-key=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure desired Cert & Key File Path**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.5 Ensure that the --kubelet-certificate-authority argument is set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=kubelet-certificate-authority=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=kubelet-certificate-authority=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure desired Certificate Authority File**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.6 Ensure that the --authorization-mode argument is not set to AlwaysAllow (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if 'AlwaysAllow' not in kube_api_server.stdout|regex_search('(?<=authorization-mode=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=authorization-mode=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: Does **not** contain **AlwaysAllow** Keyword
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.7 Ensure that the --authorization-mode argument includes Node (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if 'Node' in kube_api_server.stdout|regex_search('(?<=authorization-mode=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=authorization-mode=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **...,Node,...**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.8 Ensure that the --authorization-mode argument includes RBAC (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if 'RBAC' in kube_api_server.stdout|regex_search('(?<=authorization-mode=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=authorization-mode=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **...,RBAC,...**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.9 Ensure that the admission control plugin EventRateLimit is set (Manual)
+
+**Remediation:** Follow the Kubernetes documentation and set the desired limits in a configuration file. Then, edit the RKE2 config file /etc/rancher/rke2/config.yaml and set the below parameters.
+
+**Audit:**  
+```
+kube-apiserver-arg:
+- "enable-admission-plugins=...,EventRateLimit,..."
+- "admission-control-config-file=<path/to/configuration/file>"
+```
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if 'EventRateLimit' in kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **...,EventRateLimit,...**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.10 Ensure that the admission control plugin AlwaysAdmit is not set (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if 'AlwaysAdmit' not in kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: Does **not** contain **AlwaysAdmit** Keyword
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.11 Ensure that the admission control plugin AlwaysPullImages is set (Manual)
+
+**Remediation:** Permissive, per CIS guidelines, "This setting could impact offline or isolated clusters, which have images pre-loaded and do not have access to a registry to pull in-use images. This setting is not appropriate for clusters which use this configuration." Edit the RKE2 config file /etc/rancher/rke2/config.yaml on the control plane node and set the --enable-admission-plugins parameter to include AlwaysPullImages. --enable-admission-plugins=...,AlwaysPullImages,...
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if not is_online.failed -%}
+{%- if 'AlwaysPullImages' in kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ WARN  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **...,AlwaysPullImages,...**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.12 Ensure that the admission control plugin ServiceAccount is set (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if 'ServiceAccount' in kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **...,ServiceAccount,...**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.13 Ensure that the admission control plugin NamespaceLifecycle is set (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if 'NamespaceLifecycle' in kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **...,NamespaceLifecycle,...**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.14 Ensure that the admission control plugin NodeRestriction is set (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if 'NodeRestriction' in kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=enable-admission-plugins=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **...,NodeRestriction,...**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.15 Ensure that the --profiling argument is set to false (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=profiling=)[\S]+')|bool is false %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=profiling=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **false**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.16 Ensure that the --audit-log-path argument is set (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=audit-log-path=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=audit-log-path=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure desired Audit Log Path**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.17 Ensure that the --audit-log-maxage argument is set to 30 or as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=audit-log-maxage=)[\S]+')|int >= 30 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=audit-log-maxage=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **>=30**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.18 Ensure that the --audit-log-maxbackup argument is set to 10 or as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=audit-log-maxbackup=)[\S]+')|int >= 10 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=audit-log-maxbackup=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **>=10**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.19 Ensure that the --audit-log-maxsize argument is set to 100 or as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=audit-log-maxsize=)[\S]+')|int >= 100 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=audit-log-maxsize=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **>=100**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.20 Ensure that the --request-timeout argument is set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=request-timeout=)[\S]+')|int >= 60 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=request-timeout=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **>=60**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.21 Ensure that the --service-account-lookup argument is set to true (Automated) 
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=service-account-lookup=)[\S]+')|bool is true %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=service-account-lookup=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **true**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.22 Ensure that the --service-account-key-file argument is set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=service-account-key-file=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=service-account-key-file=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure desired Service Account Key Path**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.23 Ensure that the --etcd-certfile and --etcd-keyfile arguments are set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=etcd-certfile=)[\S]+') is not none %}
+{%- if kube_api_server.stdout|regex_search('(?<=etcd-keyfile=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `Cert: {{ kube_api_server.stdout|regex_search('(?<=etcd-certfile=)[\S]+')|string + '` ' }} `Key: {{ kube_api_server.stdout|regex_search('(?<=etcd-keyfile=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure desired Cert & Key File Path**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.24 Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=tls-cert-file=)[\S]+') is not none %}
+{%- if kube_api_server.stdout|regex_search('(?<=tls-private-key-file=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `Cert: {{ kube_api_server.stdout|regex_search('(?<=tls-cert-file=)[\S]+')|string + '` ' }} `Key: {{ kube_api_server.stdout|regex_search('(?<=tls-private-key-file=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure desired Cert & Key File Path**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.25 Ensure that the --client-ca-file argument is set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=client-ca-file=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=cleint-ca-file=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure desired Certificate Authority Path**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.26 Ensure that the --etcd-cafile argument is set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=etcd-cafile=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=etcd-cafile=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure desired Certificate Authority Path**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.27 Ensure that the --encryption-provider-config argument is set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=encryption-provider-config=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=encryption-provider-config=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure desired Config Path**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.28 Ensure that encryption providers are appropriately configured (Automated)
+
+**Audit:**  
+`ENCRYPTION_PROVIDER_CONFIG=(ps -ef | grep kube-apiserver | grep -- --encryption-provider-config | sed 's%.*encryption-provider-config[= ]\([^ ]*\).*%\1%')
+if test -e ENCRYPTION_PROVIDER_CONFIG; then grep -o 'providers\"\:\[.*\]' ENCRYPTION_PROVIDER_CONFIG | grep -o "[A-Za-z]*" | head -2 | tail -1| sed 's/^/provider=/'; fi`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if encryption_config_data.resources is defined -%}
+{%- if encryption_config_data.resources|map(attribute='providers')|flatten|first|first is not none %}
+{%- if encryption_config_data.resources|map(attribute='providers')|flatten|first|first in 'aescbc,kms,secretbox' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ encryption_config_data.resources|map(attribute='providers')|flatten|first|first|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Contains valid elements from 'aescbc,kms,secretbox'**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.29 Ensure that the API Server only makes use of Strong Cryptographic Ciphers (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- set ns = namespace(counterb=0) -%}
+{%- if kube_api_server.stdout|regex_search('(?<=tls-cipher-suites=)[\S]+') is not none %}
+{%- for item in kube_api_server.stdout|regex_search('(?<=tls-cipher-suites=)[\S]+')|list %}
+{% if item not in '[TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384]' %}
+{%- set ns.counterb = ns.counterb + 1 %}
+{% endif %}
+{% endfor %}
+{%- if ns.counterb == 0 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=tls-cipher-suites=)[\S]+')|string + '` ' }}
+{%- raw -%}
+
+ Desired Setting: **Contains valid elements from 'TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384'**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.2.30 Ensure that the --service-account-extend-token-expiration parameter is set to false (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-apiserver`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_api_server.stdout is defined -%}
+{%- if kube_api_server.stdout|regex_search('(?<=service-account-extend-token-expiration=)[\S]+')|bool is false %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_api_server.stdout|regex_search('(?<=service-account-extend-token-expiration=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **false**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+## 1.3 Controller Manager
+
+### 1.3.1 Ensure that the --terminated-pod-gc-threshold argument is set as appropriate (Manual)
+
+**Audit:**  
+`/bin/ps -fC kube-controller-manager`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_ctrl_mgr.stdout is defined -%}
+{%- if kube_ctrl_mgr.stdout|regex_search('(?<=terminated-pod-gc-threshold=)[\S]+') is not none %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_ctrl_mgr.stdout|regex_search('(?<=terminated-pod-gc-threshold=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **<=12,500**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.3.2 Ensure that the --profiling argument is set to false (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-controller-manager`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_ctrl_mgr.stdout is defined -%}
+{%- if kube_ctrl_mgr.stdout|regex_search('(?<=profiling=)[\S]+')|bool is false %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_ctrl_mgr.stdout|regex_search('(?<=profiling=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **false**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.3.3 Ensure that the --use-service-account-credentials argument is set to true (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-controller-manager`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_ctrl_mgr.stdout is defined -%}
+{%- if kube_ctrl_mgr.stdout|regex_search('(?<=use-service-account-credentials=)[\S]+')|bool is true %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_ctrl_mgr.stdout|regex_search('(?<=use-service-account-credentials=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **true**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.3.4 Ensure that the --service-account-private-key-file argument is set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-controller-manager`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_ctrl_mgr.stdout is defined -%}
+{%- if kube_ctrl_mgr.stdout|regex_search('(?<=service-account-private-key-file=)[\S]+') is not none%}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_ctrl_mgr.stdout|regex_search('(?<=service-account-private-key-file=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure Desired Service Account Private Key File**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.3.5 Ensure that the --root-ca-file argument is set as appropriate (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-controller-manager`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_ctrl_mgr.stdout is defined -%}
+{%- if kube_ctrl_mgr.stdout|regex_search('(?<=root-ca-file=)[\S]+') is not none%}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_ctrl_mgr.stdout|regex_search('(?<=root-ca-file=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Ensure Desired Root CA File**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.3.6 Ensure that the RotateKubeletServerCertificate argument is set to true (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-controller-manager`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_ctrl_mgr.stdout is defined -%}
+{%- if 'RotateKubeletServerCertificate' not in kube_ctrl_mgr.stdout|regex_search('(?<=feature-gate=)[\S]+')|string %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_ctrl_mgr.stdout|regex_search('(?<=feature-gate=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **None**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.3.7 Ensure that the --bind-address argument is set to 127.0.0.1 (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-controller-manager`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_ctrl_mgr.stdout is defined -%}
+{%- if kube_ctrl_mgr.stdout|regex_search('(?<=bind-address=)[\S]+')|string == '127.0.0.1' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_ctrl_mgr.stdout|regex_search('(?<=bind-address=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **127.0.0.1**
+{% endraw %}
+{% endif %}
+{% raw %}
+## 1.4 Scheduler
+
+### 1.4.1 Ensure that the --profiling argument is set to false (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-scheduler`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_scheduler.stdout is defined -%}
+{%- if kube_scheduler.stdout|regex_search('(?<=profiling=)[\S]+')|bool is false %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_scheduler.stdout|regex_search('(?<=profiling=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **false**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 1.4.2 Ensure that the --bind-address argument is set to 127.0.0.1 (Automated)
+
+**Audit:**  
+`/bin/ps -fC kube-scheduler`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kube_scheduler.stdout is defined -%}
+{%- if kube_scheduler.stdout|regex_search('(?<=bind-address=)[\S]+')|string == '127.0.0.1' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kube_scheduler.stdout|regex_search('(?<=bind-address=)[\S]+')|string + '` ' }}
+{%- raw -%}
+Desired Setting: **127.0.0.1**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% endif -%}
+{%- endblock -%}

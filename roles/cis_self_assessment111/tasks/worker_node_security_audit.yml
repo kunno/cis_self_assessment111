@@ -1,0 +1,261 @@
+---
+- name: Audit Worker Node Security Configuration
+  block:
+    - name: Get Kubelet Service File
+      ansible.builtin.command:
+        cmd: "{{ systemctl }} show -P FragmentPath kubelet"
+      register: kubelet_service_file_path
+      when:
+        - cli_check.results |
+            selectattr('item', 'equalto', '/usr/bin/systemctl') |
+            map(attribute='stat') | flatten | map(attribute='exists') | first |
+            bool
+
+    - name: Audit Kublet Service File
+      ansible.builtin.stat:
+        path: "{{ kubelet_service_file_path }}"
+      register: kubelet_service_file_stat
+      when:
+        - kubelet_service_file_path.stdout is defined
+        - kubelet_service_file_path.stdout | string != ''
+
+    - name: Audit Kublet Proxy File
+      ansible.builtin.stat:
+        path: /var/lib/rancher/rke2/agent/kubeproxy.kubeconfig
+      register: kubelet_proxy_file_stat
+
+    - name: Get Kubelet Config
+      ansible.builtin.command:
+        cmd: "{{ ps }} -fC kubelet"
+      register: kubelet_config
+      when:
+        - cli_check.results | selectattr('item', 'equalto', '/usr/bin/ps') |
+            map(attribute='stat') | flatten | map(attribute='exists') | first |
+            bool
+
+    - name: Audit Kublet Kubeconfig File
+      ansible.builtin.stat:
+        path: "{{ kubelet_config.stdout|
+                  regex_search('(?<=kubeconfig=)[\\S]+')
+              }}"
+      register: kubelet_kubeconfig_file_stat
+      when:
+        - kubelet_config.stdout is defined
+        - kubelet_config.stdout| regex_search('(?<=kubeconfig=)[\S]+') |
+            string is not none
+
+    - name: Audit Kublet CA Cert File
+      ansible.builtin.stat:
+        path: /var/lib/rancher/rke2/agent/client-ca.crt
+      register: kubelet_ca_cert_file_stat
+
+    - name: Audit Kubelet Config Directory
+      ansible.builtin.find:
+        paths: 
+          - "{{ kubelet_config.stdout |
+                regex_search('(?<=config-dir=)[\\S]+')
+            }}"
+        follow: true
+        recurse: true
+        hidden: true
+        file_type: file
+        patterns: "*"
+      register: kubelet_config_dir_files
+      when:
+        - kubelet_config.stdout is defined
+        - kubelet_config.stdout| regex_search('(?<=config-dir=)[\S]+') |
+            string is not none
+
+    - name: Audit Kublet Config Files
+      ansible.builtin.slurp:
+        src: "{{ item }}"
+      register: kubelet_config_content
+      loop: "{{ kubelet_config_dir_files.files | map(attribute='path') |
+                list
+            }}"
+      when:
+        - kubelet_config_dir_files.files is defined
+        - kubelet_config_dir_files.files | map(attribute='path') | list |
+            length > 0
+
+    - name: Decode Kubelet Config Files
+      ansible.builtin.set_fact:
+        kubelet_config_data: "{{ kubelet_config_content.results |
+                                 map(attribute='content') | list |
+                                 map('ansible.builtin.b64decode') | list |
+                                 map('ansible.builtin.from_yaml') | list
+                             }}"
+      when:
+        - kubelet_config_content.results is defined
+        - kubelet_config_content.results | map(attribute='content') | list |
+            length > 0
+
+    - name: Extract Kubelet Config Settings
+      ansible.builtin.set_fact:
+        kubelet_anonymous_auth: "{{ kubelet_config_data |
+                                    selectattr('authentication', 'defined') |
+                                    map(attribute='authentication') |
+                                    map(attribute='anonymous') |
+                                    map(attribute='enabled') |
+                                    map('string') | list
+                                }}"
+        kubelet_auth_mode: "{{ kubelet_config_data |
+                               selectattr('authorization', 'defined') |
+							   map(attribute='authorization') |
+                               map(attribute='mode') | list
+                           }}"
+        kubelet_client_ca: "{{ kubelet_config_data |
+                               selectattr('authentication', 'defined') |
+                               map(attribute='authentication') |
+                               map(attribute='x509') |
+                               map(attribute='clientCAFile') | list
+                           }}"
+        kubelet_stream_timeout: "{{ kubelet_config_data |
+                                    selectattr(
+                                      'streamingConnectionIdleTimeout',
+                                      'defined'
+                                    ) | map(attribute=
+                                            'streamingConnectionIdleTimeout'
+                                        ) | list
+                                }}"
+        kubelet_read_only_port: "{{ kubelet_config.stdout |
+                                    regex_search(
+                                      '(?<=read-only-port=)[\\S]+'
+                                    )
+                                }}"
+        kubelet_iptables_chains: "{{ kubelet_config_data |
+                                     selectattr(
+                                       'makeIPTablesUtilChains',
+                                       'defined'
+                                     ) | map(attribute=
+                                             'makeIPTablesUtilChains'
+                                            ) | list
+                                 }}"
+        kubelet_hostname_override: "{{ kubelet_config.stdout |
+                                       regex_search(
+                                         '(?<=hostname-override=)[\\S]+'
+                                       ) | string
+                                   }}"
+        kubelet_event_record: "{{ kubelet_config_data |
+                                    selectattr('eventRecordQPS', 'defined') |
+                                    map(attribute='eventRecordQPS') | list
+                              }}"
+        kubelet_tls_cert: "{{ kubelet_config_data |
+                                selectattr('tlsCertFile', 'defined') |
+                                map(attribute='tlsCertFile') | list
+                          }}"
+        kubelet_tls_key: "{{ kubelet_config_data |
+                               selectattr('tlsPrivateKeyFile', 'defined') |
+                               map(attribute='tlsPrivateKeyFile') | list
+                         }}"
+        kubelet_rotate_certs: "{{ kubelet_config_data |
+                                    selectattr('rotateCertificates',
+                                               'defined'
+                                    ) | map(attribute='rotateCertificates') |
+                                    list
+                              }}"
+        kubelet_rotate_srv_certs: "{{ kubelet_config_data |
+                                      selectattr('featureGates', 'defined') |
+                                      map(attribute='featureGates') |
+                                      map(attribute=
+                                          'RotateKubeletServerCertificate'
+                                      ) | list
+                                  }}"
+      when:
+        - kubelet_config.stdout is defined
+        - kubelet_config.stdout | string is not none
+        - kubelet_config_data is defined
+        - kubelet_config_data | list | length > 0  
+
+    - name: Check Agent Config File Exists
+      ansible.builtin.stat:
+        path: /etc/rancher/rke2/config.yaml
+      register: agent_config_check
+
+    - name: Check Kube Addon File Exists
+      ansible.builtin.stat:
+        path: /etc/kubernetes/addons/kube-proxy-daemonset.yaml
+      register: kube_addon_check
+
+    - name: Audit Agent Config File
+      ansible.builtin.slurp:
+        src: /etc/rancher/rke2/config.yaml
+      register: agent_config
+      when:
+        - agent_config_check.stat.exists is defined
+        - agent_config_check.stat.exists|bool
+
+    - name: Audit Kube Addon File
+      ansible.builtin.slurp:
+        src: /etc/kubernetes/addons/kube-proxy-daemonset.yaml
+      register: kube_addon
+      when:
+        - kube_addon_check.stat.exists is defined
+        - kube_addon_check.stat.exists|bool
+
+    - name: Decode Agent Config File
+      ansible.builtin.set_fact:
+        agent_config_data: "{{ agent_config.content | b64decode | from_yaml }}"
+      when:
+        - agent_config.content is defined
+        - agent_config.content != ''
+
+    - name: Decode Kube Addon File
+      ansible.builtin.set_fact:
+        kube_addon_data: "{{ kube_addon.content | b64decode | from_yaml }}"
+      when:
+        - kube_addon.content is defined
+        - kube_addon.content != ''
+
+    - name: Extract Kubelet Config Settings
+      ansible.builtin.set_fact:
+        kubelet_tls_cipher: "{{ agent_config_data['kubelet-arg'] |
+                                select('search', '^tls-cipher-suites') | join |
+                                regex_search('(?<=tls-cipher-suites=)[\\S]+')
+                            }}"
+        kubelet_pod_max_pids: "{{ agent_config_data['kubelet-arg'] |
+                                  select('search', '^pod-max-pids') | join |
+                                  regex_search('(?<=pod-max-pids=)[\\S]+')
+                              }}"
+        kubelet_seccomp: "{{ agent_config_data['kubelet-arg'] |
+                             select('search', '^seccomp-default') | join |
+                             regex_search('(?<=seccomp-default=)[\\S]+')
+                         }}"
+        kubelet_metrics_address: "{{ agent_config_data['kubelet-arg'] |
+                                     select('search', '^metrics-bind-address') |
+                                     join
+                                 }}"
+      when:
+        - agent_config_data is defined
+        - agent_config_data['kubelet-arg'] is defined
+        - agent_config_data['kubelet-arg'] | list | length > 0  
+
+    - name: Extract Kubelet Addon Settings
+      ansible.builtin.set_fact:
+        kubelet_metrics_addon: "{{ kube_addon_data |
+                                   selectattr('data', 'defined') |
+                                   map(attribute='data') |
+                                   map(attribute='metricsBindAddress')
+                               }}"
+      when:
+        - kube_addon_data is defined
+        - kube_addon_data['kubelet-arg'] is defined
+        - kube_addon_data['kubelet-arg'] | list | length > 0  
+
+    - name: Generate Worker Compliance Report
+      ansible.builtin.template:
+        src: worker_security_audit.j2
+        dest: "{{ reports_dir }}/{{ group }}/{{ inventory_hostname }}-{{
+                  audit_timestamp
+               }}.md"
+      delegate_to: localhost
+      become: false
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ KUBECONFIG }}"
+  when:
+    - group == 'agents'
+  tags:
+    - worker_audit
+    - worker_config_audit
+    - worker_security_audit

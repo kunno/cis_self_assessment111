@@ -1,0 +1,83 @@
+---
+- name: Run Pre Audit Checks
+  block:
+    - name: Master/Worker Node Check
+      ansible.builtin.service_facts:
+
+    - name: Add Host to Groups
+      ansible.builtin.set_fact:
+        audit_timestamp : "{{ now(fmt='%Y-%m-%d-%H%M%S') }}"
+        group: "{{ 'servers' if ansible_facts.services['rke2-server.service'].state
+                    is defined and ansible_facts.services['rke2-server.service'].state
+                    == 'running' else 'agents' if
+                    ansible_facts.services['rke2-agent.service'].state is defined and
+                    ansible_facts.services['rke2-agent.service'].state == 'running'
+               }}"
+
+    - name: Check required CLIs exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: cli_check
+      loop:
+        - /usr/bin/ps
+        - /usr/bin/systemctl
+        - /usr/local/bin/rke2
+        - /var/lib/rancher/rke2/bin/kubectl
+
+    - name: Set CLI bin Paths
+      ansible.builtin.set_fact:
+        ps: "{{ '/usr/bin/ps' if cli_check.results |
+                selectattr('item', 'equalto', '/usr/bin/ps') |
+                map(attribute='stat') | flatten | map(attribute='exists') |
+                first | bool
+            }}"
+        systemctl: "{{ '/usr/bin/systemctl' if cli_check.results |
+                       selectattr('item', 'equalto', '/usr/bin/systemctl') |
+                       map(attribute='stat') | flatten |
+                       map(attribute='exists') | first | bool
+                   }}"
+        rke2: "{{ '/usr/local/bin/rke2' if cli_check.results |
+                  selectattr('item', 'equalto', '/usr/local/bin/rke2') |
+                  map(attribute='stat') | flatten | map(attribute='exists') |
+                  first | bool
+              }}"
+        kubectl: "{{ '/var/lib/rancher/rke2/bin/rke2' if cli_check.results |
+                     selectattr('item', 'equalto',
+                                '/var/lib/rancher/rke2/bin/kubectl'
+                     ) | map(attribute='stat') | flatten |
+                     map(attribute='exists') | first | bool
+                 }}"
+      
+    - name: Etcd Node Check
+      ansible.builtin.command:
+        cmd: "{{ ps }} -fC etcd"
+      register: etcd_check
+      ignore_errors: true
+      no_log: true
+
+    - name: Mark Etcd Nodes
+      ansible.builtin.set_fact:
+        etcd_node: "{{ true if etcd_check.stdout is defined and '--config-file='
+                       in etcd_check.stdout else false
+                   }}"
+
+    - name: Online/Offline Node Check
+      ansible.builtin.uri:
+        url: https://docker.io
+      register: is_online
+      ignore_errors: true
+      no_log: true
+
+    - name: Create Reports Directory
+      ansible.builtin.file:
+        path: "{{ reports_dir }}/{{ item }}"
+        state: directory
+        recurse: true
+      delegate_to: localhost
+      become: false
+      loop:
+        - servers
+        - agents
+  tags:
+    - cp_audit
+    - etcd_audit

@@ -1,0 +1,774 @@
+{%- extends "cp_config_audit.j2" -%}
+{%- block cis_self_assessment111 -%}
+{{ super() }}
+{%- endblock -%}
+{%- block worker_security_audit -%}
+{%- if 'worker_audit' in ansible_run_tags or 'worker_config_audit' in ansible_run_tags or 'worker_security_audit' in ansible_run_tags or 'all' in ansible_run_tags -%}
+{%- raw %}
+# 4 Worker Node Security Configuration
+
+## 4.1 Worker Node Configuration Files
+
+### 4.1.1 Ensure that the kubelet service file permissions are set to 600 or more restrictive (Automated)
+
+**Audit:**  
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_service_file_stat.stat.mode is defined -%}
+{%- if kubelet_service_file_stat.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_service_file_stat.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ NOT APPLICABLE  
+
+**Rationale:**
+
+The kubelet is managed by the RKE2 process. There is no kubelet service file, all configuration is passed in as arguments at runtime.
+{% endif %}
+{% raw %}
+### 4.1.2 Ensure that the kubelet service file ownership is set to root:root (Automated)
+
+**Audit:**  
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if kubelet_service_file_stat.stat.pw_name is defined -%}
+{%- if kubelet_service_file_stat.stat.gr_name is defined -%}
+{%- if kubelet_service_file_stat.stat.pw_name|e == 'root' -%}
+{%- if kubelet_service_file_stat.stat.gr_name|e == 'root' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_service_file_stat.stat.pw_name }}:{{ kubelet_service_file_stat.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ NOT APPLICABLE  
+
+**Rationale:**
+
+The kubelet is managed by the RKE2 process. There is no kubelet service file, all configuration is passed in as arguments at runtime.
+{% endif %}
+{% raw %}
+### 4.1.3 If proxy kubeconfig file exists ensure permissions are set to 600 or more restrictive (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/kubeproxy.kubeconfig; then stat -c permissions=%a /var/lib/rancher/rke2/agent/kubeproxy.kubeconfig; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_proxy_file_stat.stat.mode is defined -%}
+{%- if kubelet_proxy_file_stat.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_proxy_file_stat.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.1.4 If proxy kubeconfig file exists ensure ownership is set to root:root (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/kubeproxy.kubeconfig; then stat -c %U:%G /var/lib/rancher/rke2/agent/kubeproxy.kubeconfig; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if kubelet_proxy_file_stat.stat.pw_name is defined -%}
+{%- if kubelet_proxy_file_stat.stat.gr_name is defined -%}
+{%- if kubelet_proxy_file_stat.stat.pw_name|e == 'root' -%}
+{%- if kubelet_proxy_file_stat.stat.gr_name|e == 'root' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_proxy_file_stat.stat.pw_name }}:{{ kubelet_proxy_file_stat.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.1.5 Ensure that the --kubeconfig kubelet.conf file permissions are set to 600 or more restrictive (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/kubelet.kubeconfig; then stat -c permissions=%a /var/lib/rancher/rke2/agent/kubelet.kubeconfig; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_kubeconfig_file_stat.stat.mode is defined -%}
+{%- if kubelet_kubeconfig_file_stat.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_kubeconfig_file_stat.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.1.6 Ensure that the --kubeconfig kubelet.conf file ownership is set to root:root (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/kubelet.kubeconfig; then stat -c %U:%G /var/lib/rancher/rke2/agent/kubelet.kubeconfig; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if kubelet_kubeconfig_file_stat.stat.pw_name is defined -%}
+{%- if kubelet_kubeconfig_file_stat.stat.gr_name is defined -%}
+{%- if kubelet_kubeconfig_file_stat.stat.pw_name|e == 'root' -%}
+{%- if kubelet_kubeconfig_file_stat.stat.gr_name|e == 'root' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_kubeconfig_file_stat.stat.pw_name }}:{{ kubelet_kubeconfig_file_stat.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.1.7 Ensure that the certificate authorities file permissions are set to 600 or more restrictive (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/client-ca.crt; then stat -c permissions=%a /var/lib/rancher/rke2/agent/client-ca.crt; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_ca_cert_file_stat.stat.mode is defined -%}
+{%- if kubelet_ca_cert_file_stat.stat.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_ca_cert_file_stat.stat.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.1.8 Ensure that the client certificate authorities file ownership is set to root:root (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /var/lib/rancher/rke2/agent/client-ca.crt; then stat -c %U:%G /var/lib/rancher/rke2/agent/client-ca.crt; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if kubelet_ca_cert_file_stat.stat.pw_name is defined -%}
+{%- if kubelet_ca_cert_file_stat.stat.gr_name is defined -%}
+{%- if kubelet_ca_cert_file_stat.stat.pw_name|e == 'root' -%}
+{%- if kubelet_ca_cert_file_stat.stat.gr_name|e == 'root' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_ca_cert_file_stat.stat.pw_name }}:{{ kubelet_ca_cert_file_stat.stat.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.1.9 If the kubelet config.yaml configuration file is being used validate permissions set to 600 or more restrictive (Automated)
+
+**Audit:**  
+
+**Result:**
+
+{%- endraw -%}
+
+
+{%- if kubelet_config_dir_files.files is defined -%}
+{% for item in kubelet_config_dir_files.files %}
+
+{{ item.path }}
+
+{%- if item.mode is defined -%}
+{%- if item.mode|int <= 600 %}
+ PASS  
+{% else %}
+ FAIL  
+{%- endif -%}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ item.mode + '` ' }}
+{%- raw -%}
+Desired Setting: **0600**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% endfor %}
+{%- else %}
+ NOT APPLICABLE  
+
+**Rationale:**
+
+The kubelet is managed by the RKE2 process. There is no kubelet service file, all configuration is passed in as arguments at runtime.
+{% endif %}
+{% raw %}
+### 4.1.10 If the kubelet config.yaml configuration file is being used validate file ownership is set to root:root (Automated)
+
+**Audit:**  
+
+**Result:**  
+
+{%- endraw -%}
+
+
+{%- if kubelet_config_dir_files.files is defined -%}
+{% for item in kubelet_config_dir_files.files %}
+
+{{ item.path }}
+
+{%- if item.pw_name is defined -%}
+{%- if item.gr_name is defined -%}
+{%- if item.pw_name|e == 'root' -%}
+{%- if item.gr_name|e == 'root' %}
+ PASS  
+{% endif %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ item.pw_name }}:{{ item.gr_name + '` ' }}
+{%- raw -%}
+Desired Setting: **root:root**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ NOT APPLICABLE  
+**Rationale:**
+
+The kubelet is managed by the RKE2 process. There is no kubelet service file, all configuration is passed in as arguments at runtime.
+{% endif %}
+{% endfor %}
+{%- else %}
+ NOT APPLICABLE  
+**Rationale:**
+
+The kubelet is managed by the RKE2 process. There is no kubelet service file, all configuration is passed in as arguments at runtime.
+{% endif %}
+{% raw %}
+## 4.2 Kubelet
+
+### 4.2.1 Ensure that the --anonymous-auth argument is set to false (Automated)
+
+**Audit:**  
+`/bin/cat /var/lib/rancher/rke2/agent/etc/kubelet.conf.d/00-rke2-defaults.conf`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_anonymous_auth is defined -%}
+{%- if kubelet_anonymous_auth|unique|list == ['False'] %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_anonymous_auth|join('') + '` ' }}
+{%- raw -%}
+Desired Setting: **False**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.2.2 Ensure that the --authorization-mode argument is not set to AlwaysAllow (Automated)
+
+**Audit:**  
+`/bin/cat /var/lib/rancher/rke2/agent/etc/kubelet.conf.d/00-rke2-defaults.conf`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_auth_mode is defined -%}
+{%- if kubelet_auth_mode|unique|list == ['AlwaysAllow'] %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_auth_mode|join('') + '` ' }}
+{%- raw -%}
+Desired Setting: **AlwaysAllow**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.2.3 Ensure that the --client-ca-file argument is set as appropriate (Automated)
+
+**Audit:**  
+`/bin/cat /var/lib/rancher/rke2/agent/etc/kubelet.conf.d/00-rke2-defaults.conf`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_client_ca is defined -%}
+{%- if kubelet_client_ca|unique|list == ['/var/lib/rancher/rke2/agent/client-ca.crt'] %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_client_ca|join('') + '` ' }}
+{%- raw -%}
+Desired Setting: **/var/lib/rancher/rke2/agent/client-ca.crt**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.2.4 Verify that if defined, the --read-only-port argument is set to 0 (Automated)
+
+**Audit:**  
+`/bin/cat /var/lib/rancher/rke2/agent/etc/kubelet.conf.d/00-rke2-defaults.conf`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_read_only_port is defined -%}
+{%- if kubelet_read_only_port == '0' or kubelet_read_only_port == '' %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_read_only_port|string + '` ' }}
+{%- raw -%}
+Desired Setting: **0**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.2.5 Ensure that the --streaming-connection-idle-timeout argument is not set to 0 (Manual)
+
+**Audit:**  
+`/bin/cat /var/lib/rancher/rke2/agent/etc/kubelet.conf.d/00-rke2-defaults.conf`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_stream_timeout is defined -%}
+{%- if kubelet_stream_timeout|unique|list|reject('match', '^0')|list|length > 0 or kubelet_stream_timeout|list|length == 0 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_stream_timeout|join('') + '` ' }}
+{%- raw -%}
+Desired Setting: **!=0**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.2.6 Ensure that the --make-iptables-util-chains argument is set to true (Automated)
+
+**Audit:**  
+`/bin/cat /var/lib/rancher/rke2/agent/etc/kubelet.conf.d/00-rke2-defaults.conf`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_iptables_chains is defined -%}
+{%- if kubelet_iptables_chains|unique|list == ['True'] or kubelet_iptables_chains|list|length == 0 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_iptables_chains|join('') + '` ' }}
+{%- raw -%}
+Desired Setting: **True**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.2.7 Ensure that the --hostname-override argument is not set (Automated)
+
+**Audit:**  
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_hostname_override is defined -%}
+{%- if kubelet_hostname_override|string == ansible_hostname %}
+ NOT APPLICABLE  
+{% raw %}
+**Rationale:**
+
+By default, RKE2 does set the --hostname-override argument. Per CIS guidelines, this is to comply with cloud providers that require this flag to ensure that hostname matches node names.
+{% endraw %}
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_hostname_override|join('') + '` ' }}
+{%- raw -%}
+Desired Setting: ** **
+{% endraw %}
+{%- else %}
+ PASS  
+{% raw %}
+**Rationale:**
+
+By default, RKE2 does set the --hostname-override argument. Per CIS guidelines, this is to comply with cloud providers that require this flag to ensure that hostname matches node names.
+{% endraw %}
+{% endif %}
+{% raw %}
+### 4.2.8 Ensure that the eventRecordQPS argument is set to a level which ensures appropriate event capture (Manual)
+
+**Audit:**  
+`/bin/cat /var/lib/rancher/rke2/agent/etc/kubelet.conf.d/00-rke2-defaults.conf`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_event_record|unique|list is defined -%}
+{%- if kubelet_hostname_override|string == ansible_hostname %}
+ NOT APPLICABLE  
+{% raw %}
+**Rationale:**
+
+By default, RKE2 does set the --hostname-override argument. Per CIS guidelines, this is to comply with cloud providers that require this flag to ensure that hostname matches node names.
+{% endraw %}
+{% elif kubelet_hostname_override|string == '' %}
+ PASS
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_hostname_override|join('') + '` ' }}
+{%- raw -%}
+Desired Setting: ** **
+{% endraw %}
+{%- else %}
+ PASS  
+{% raw %}
+**Rationale:**
+
+By default, RKE2 does set the --hostname-override argument. Per CIS guidelines, this is to comply with cloud providers that require this flag to ensure that hostname matches node names.
+{% endraw %}
+{% endif %}
+{% raw %}
+### 4.2.9 Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate (Automated)
+
+**Audit:**  
+`/bin/cat /var/lib/rancher/rke2/agent/etc/kubelet.conf.d/00-rke2-defaults.conf`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_tls_cert is defined and kubelet_tls_key is defined -%}
+{%- if kubelet_tls_cert|unique|list == ['/var/lib/rancher/rke2/agent/serving-kubelet.crt'] and kubelet_tls_key|unique|list == ['/var/lib/rancher/rke2/agent/serving-kubelet.key'] %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ **Cert:** `{{ kubelet_tls_cert|join('') + '` ' }}
+ **Key:** `{{ kubelet_tls_key|join('') + '` ' }}
+{%- raw -%}
+Desired Setting: **/var/lib/rancher/rke2/agent/client-ca.crt**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.2.10 Ensure that the --rotate-certificates argument is not set to false (Automated)
+
+**Audit:**  
+`/bin/cat /var/lib/rancher/rke2/agent/etc/kubelet.conf.d/00-rke2-defaults.conf`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_rotate_certs is defined -%}
+{%- if kubelet_rotate_certs|unique|list == ['False'] or kubelet_rotate_certs|list|length == 0 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_rotate_certs|join('') + '` ' }}
+{%- raw -%}
+Desired Setting: **False**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.2.11 Verify that the RotateKubeletServerCertificate argument is set to true (Automated)
+
+**Audit:**  
+`/bin/cat /var/lib/rancher/rke2/agent/etc/kubelet.conf.d/00-rke2-defaults.conf`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_rotate_srv_certs is defined -%}
+{%- if kubelet_rotate_srv_certs|unique|list == ['False'] or kubelet_rotate_srv_certs|list|length == 0 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_rotate_srv_certs|join('') + '` ' }}
+{%- raw -%}
+Desired Setting: **False**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% raw %}
+### 4.2.12 Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers (Manual)
+
+**Audit:**  
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_tls_cipher is defined -%}
+{%- set ns = namespace(countera=0) -%}
+{%- if kubelet_tls_cipher is not none %}
+{%- for item in kubelet_tls_cipher|list %}
+{% if item not in '[TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384]' %}
+{%- set ns.countera = ns.countera + 1 %}
+{% endif %}
+{% endfor %}
+{%- if ns.countera == 0 %}
+ PASS  
+{% else %}
+ FAIL  
+{% endif %}
+{%- else %}
+ WARN  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_tls_cipher|string + '` ' }}
+{%- raw -%}
+
+ Desired Setting: **Contains valid elements from 'TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384'**
+{% endraw %}
+{%- else %}
+ WARN  
+{% endif %}
+{% raw %}
+### 4.2.13 Ensure that a limit is set on pod PIDs (Manual)
+
+**Audit:**  
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_pod_max_pids is defined -%}
+{%- if kubelet_pod_max_pids|int <= 4194304 %}
+ PASS  
+{% else %}
+ WARN  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_pod_max_pids|string + '` ' }}
+{%- raw -%}
+Desired Setting: **Appropriate Value**
+{% endraw %}
+{%- else %}
+ WARN  
+{% endif %}
+{% raw %}
+### 4.2.14 Ensure that the --seccomp-default parameter is set to true (Manual)
+
+**Audit:**  
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_seccomp is defined -%}
+{%- if kubelet_seccomp|bool %}
+ PASS  
+{% else %}
+ WARN  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_seccomp|string + '` ' }}
+{%- raw -%}
+Desired Setting: **true**
+{% endraw %}
+{%- else %}
+ WARN  
+{% endif %}
+{% raw %}
+## 4.3 kube-proxy
+
+### 4.3.1 Ensure that the kube-proxy metrics service is bound to localhost (Automated)
+
+**Audit:**  
+`/bin/sh -c 'if test -e /etc/kubernetes/addons/kube-proxy-daemonset.yaml; then cat /etc/kubernetes/addons/kube-proxy-daemonset.yaml; fi'`
+
+**Result:**
+
+{%- endraw -%}
+
+{%- if kubelet_metrics_address is defined -%}
+{%- if kubelet_metrics_address|regex_search('(?<=metrics-bind-address=)[\\S]+') is none or kubelet_metrics_address|regex_search('(?<=metrics-bind-address=)[\\S]+')|string == 'localhost:10249' or kubelet_metrics_address|regex_search('(?<=metrics-bind-address=)[\\S]+')|string == 'localhost:10249' %}
+ PASS  
+{% elif kubelet_metrics_addon is defined and (kubelet_metrics_addon|list|length == 0 or kubelet_metrics_addon|unique|list == ['127.0.0.1:10249'] or kubelet_metrics_addon|unique|list == ['localhost:10249']) %}
+ PASS
+{% else %}
+ FAIL  
+{% endif %}
+{%- raw -%}
+**Current Setting:**
+{%- endraw %}
+ `{{ kubelet_metrics_address|string + '` ' }}
+{%- raw -%}
+Desired Setting: **127.0.0.1:10249**
+{% endraw %}
+{%- else %}
+ FAIL  
+{% endif %}
+{% endif %}
+{% endblock %}
